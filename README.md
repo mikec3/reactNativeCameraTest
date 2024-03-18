@@ -1,7 +1,9 @@
-## React Native simple app developed with expo
+## A simple React Native app to test using the phone's camera
 
-# Steps
+### Initial app setup
 
-*1: npx create-expo-app cameraTest
-*2: cd cameraTest
-*3: npx expo start
+```
+    npx create-expo-app cameraTest 
+    cd cameraTest
+    npx expo start
+```
