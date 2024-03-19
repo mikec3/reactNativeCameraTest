@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-start'
   },
   camera: {
     width: '100%',
-    height: '100%',
+    height: '65%',
     justifyContent: 'flex-end'
   },
   buttonContainer: {
