@@ -3,11 +3,16 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions,ImageBackground, Image } from 'react-native';
 import axios from 'axios'
 import Results from './Results';
+//import { readFile } from 'react-native-fs'; // this gives errors
+import FileSystem from "expo-file-system" // using expo file system instead of react-native
+
 
 export default function App() {
 
   const [type, setType] = useState(CameraType.back);
   const [permission, requestPermission] = Camera.useCameraPermissions();
+
+  const [isHotDog, setIsHotDog] = useState("");
 
   const [previewVisible, setPreviewVisible] = useState(false);
 
@@ -35,49 +40,71 @@ export default function App() {
 
   async function takePicture() {
     console.log('take picture');
-    const photo = await camera.takePictureAsync();
+    const options = {base64: true}
+    const photo = await camera.takePictureAsync(options);
 
     setCapturedImage(photo);
     setPreviewVisible(true);
 
-    getPictureResults(photo);
+   // send the base64 image to the server for analysis
+    sendPicToAPI(photo);
 
-    console.log(photo);
+    console.log(photo.uri);
   }
 
-  async function getPictureResults(photo) {
-   // e.preventDefault(); // prevent page re-load
-		let data = JSON.stringify({
-			"photo": photo
-		})
+  async function sendPicToAPI(photo) {
+    console.log('image?');
+    setIsHotDog("Looking for hot dogs...");
+    
+    const source = photo.base64;
 
-		let config = {
-			method : 'post',
-			url: 'http://192.168.4.25:3001/api/testAPICall',
-			headers: {
-				    'Content-Type': 'application/json', 
-    				'Accept': 'application/json'
-			},
-			data : data
-		};
+    if (source) {
 
-		axios(config)
-		.then((response) => {
-			console.log(JSON.stringify(response.data))
-			if (response.data != 'error') {
-        // do something with the response
-			} else {
-        // error occurred.
-			}
-		})
-		.catch((error) => {
-  		console.log(error);
-		});
+      // contrsuct api call, pass base64 image in
+      let base64Img = source;
+      let apiUrl = 'http://192.168.4.25:3001/api/testAPICall';
+      let data = JSON.stringify({
+        file: base64Img
+      });
+
+      let config = {
+        method: 'post',
+        url: apiUrl,
+        headers: {
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json'
+        },
+        data : data
+      }
+
+      axios(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data))
+        if (response.data != 'error') {
+          // do something with the response
+          console.log(response.data)
+          console.log(response.status);
+          console.log('is hotdog?: ' + response.data.hotdog);
+          if (response.data.hotdog) {
+            setIsHotDog("It's a hot dogggg!!!");
+          } else {
+            setIsHotDog("Not a hot dog!");
+          }
+        } else {
+          // error occurred.
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+    }
   }
 
+  // resets the campturedImage to nothing so that the camera viewer will turn on
   function resetCamera() {
     setCapturedImage(null);
     setPreviewVisible(false);
+    setIsHotDog("");
   }
 
   return (
@@ -120,9 +147,11 @@ export default function App() {
       <View style={{alignItems: 'center'}}>
         <Results/>
         {previewVisible && capturedImage ? 
-        <TouchableOpacity style={styles.button} onPress={resetCamera}>
+        <TouchableOpacity style={styles.resultsButton} onPress={resetCamera}>
                 <Text> Try Again </Text>
-        </TouchableOpacity> : <></>}
+                <Text style={styles.resultsText}> {isHotDog} </Text>
+        </TouchableOpacity> : <></>
+        }
       </View>
     </View>
       );
@@ -160,5 +189,19 @@ const styles = StyleSheet.create({
   text: {
     color: 'white',
     fontWeight: 'bold'
+  },
+
+  resultsButton: {
+    alignItems: 'center',
+    marginBottom: 25,
+    borderColor: 'blue',
+    borderWidth: 1,
+    width: '50%',
+    borderRadius: 10
+  },
+  resultsText: {
+    fontSize: 16,
+    fontWeight: 'bold'
+
   }
 });
