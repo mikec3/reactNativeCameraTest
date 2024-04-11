@@ -3,29 +3,37 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions,ImageBackground, Image } from 'react-native';
 import axios from 'axios'
 import Results from './Results';
-//import { readFile } from 'react-native-fs'; // this gives errors
-import FileSystem from "expo-file-system" // using expo file system instead of react-native
 
 
 export default function App() {
 
+  // variable for camera front/back
   const [type, setType] = useState(CameraType.back);
+
+  // stores if we have permission from device to use the camera
   const [permission, requestPermission] = Camera.useCameraPermissions();
 
+  // results from api will update if we found a hot dog or not
   const [isHotDog, setIsHotDog] = useState(false);
+
+  // is thinking to display while awaiting api response for photo analysis
   const [isThinking, setIsThinking] = useState(false);
 
+  // let's us know if there is a preview to show instead of the active camera image
   const [previewVisible, setPreviewVisible] = useState(false);
 
+  // store the image taken with the camera
   const [capturedImage, setCapturedImage] = useState(null);
 
+  // get window width to use when determining camera display port size
   const {width} = useWindowDimensions();
   const height = Math.round((width*4)/3);
 
+  // instantiate the camera
   let camera: Camera;
 
 
-
+  // do we have permission to use the camera?
   console.log('permission at startup: ' + permission);
 
   // if permission hasn't been granted, ask for it. Should really be checking for permission.granted at some point
@@ -35,28 +43,40 @@ export default function App() {
     console.log('permission after requesting' + permission);
   }
 
+  // toggle the camera (front or back)
   function toggleCameraType() {
     setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
   }
 
+  // take the picture and send it to api
   async function takePicture() {
     console.log('take picture');
+
+    // tell the camera to store the base64 for images it takes
     const options = {base64: true}
+
+    // take the photo
     const photo = await camera.takePictureAsync(options);
 
+    // store the photo and tell previewer that we can view the preview
     setCapturedImage(photo);
     setPreviewVisible(true);
 
    // send the base64 image to the server for analysis
     sendPicToAPI(photo);
 
+    // print the local file system uri of the photo
     console.log(photo.uri);
   }
 
+  // sends the taken photo to our api for analysis, will return a true/false for isHotDog
   async function sendPicToAPI(photo) {
     console.log('image?');
+
+    // isThinking is true, so that results window can show thinking while awaiting api response
     setIsThinking(true);
     
+    // extract the base64 from the photo
     const source = photo.base64;
 
     if (source) {
@@ -87,9 +107,11 @@ export default function App() {
           console.log(response.status);
           console.log('is hotdog?: ' + response.data.hotdog);
           if (response.data.hotdog) {
+            // hot dog found!
             setIsHotDog(true);
             setIsThinking(false);
           } else {
+            // NOT hoddog! 
             setIsHotDog(false);
             setIsThinking(false);
           }
@@ -164,11 +186,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  // camera: {
-  //   width: '100%',
-  //   height: '65%',
-  //   justifyContent: 'flex-end'
-  // },
   buttonContainer: {
     alignItems: 'center'
   },
@@ -193,29 +210,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold'
   },
-
-  resultsButton: {
-    alignItems: 'center',
-    marginBottom: 25,
-    borderColor: 'blue',
-    borderWidth: 1,
-    width: '50%',
-    borderRadius: 10
-  },
   thinkingText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'blue'
   }
 });
-
-
-{/* <View style={{alignItems: 'center'}}>
-<Results/>
-{previewVisible && capturedImage ? 
-<TouchableOpacity style={styles.resultsButton} onPress={resetCamera}>
-        <Text> Try Again </Text>
-        <Text style={styles.resultsText}> {isHotDog} </Text>
-</TouchableOpacity> : <></>
-}
-</View> */}
