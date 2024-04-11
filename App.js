@@ -12,7 +12,8 @@ export default function App() {
   const [type, setType] = useState(CameraType.back);
   const [permission, requestPermission] = Camera.useCameraPermissions();
 
-  const [isHotDog, setIsHotDog] = useState("");
+  const [isHotDog, setIsHotDog] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
 
   const [previewVisible, setPreviewVisible] = useState(false);
 
@@ -54,7 +55,7 @@ export default function App() {
 
   async function sendPicToAPI(photo) {
     console.log('image?');
-    setIsHotDog("Looking for hot dogs...");
+    setIsThinking(true);
     
     const source = photo.base64;
 
@@ -86,9 +87,11 @@ export default function App() {
           console.log(response.status);
           console.log('is hotdog?: ' + response.data.hotdog);
           if (response.data.hotdog) {
-            setIsHotDog("It's a hot dogggg!!!");
+            setIsHotDog(true);
+            setIsThinking(false);
           } else {
-            setIsHotDog("Not a hot dog!");
+            setIsHotDog(false);
+            setIsThinking(false);
           }
         } else {
           // error occurred.
@@ -104,12 +107,13 @@ export default function App() {
   function resetCamera() {
     setCapturedImage(null);
     setPreviewVisible(false);
-    setIsHotDog("");
+    setIsHotDog(false);
+    setIsThinking(false);
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
+    <View>
+      <View style={{marginTop: 50}}>
         {previewVisible && capturedImage ? 
         <View>
           <ImageBackground 
@@ -137,20 +141,22 @@ export default function App() {
             <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
               <Text style={styles.text}>Flip Camera</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={takePicture}>
-              <Text style={styles.text}>Take Picture</Text>
+            <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+                <Text> </Text>
             </TouchableOpacity>
           </View>
         </Camera>
         }
       </View>
-      <View style={{alignItems: 'center'}}>
-        <Results/>
-        {previewVisible && capturedImage ? 
-        <TouchableOpacity style={styles.resultsButton} onPress={resetCamera}>
-                <Text> Try Again </Text>
-                <Text style={styles.resultsText}> {isHotDog} </Text>
-        </TouchableOpacity> : <></>
+      <View style={{alignItems: 'center', justifyContent: 'center', height: '30%'}}>
+        {isThinking ?
+          <View> 
+            <Text style={styles.thinkingText}> Thinking... </Text>
+          </View>
+        : 
+          <Results capturedImage={capturedImage} 
+                    isHotDog={isHotDog}
+                    resetCamera={resetCamera}/>
         }
       </View>
     </View>
@@ -158,18 +164,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    // borderColor: 'blue',
-    // borderWidth: 2
-  },
-  imageContainer: {
-    justifyContent: 'flex-start',
-    paddingTop: 50,
-    // borderColor: 'red',
-    // borderWidth: 1
-  },
   // camera: {
   //   width: '100%',
   //   height: '65%',
@@ -186,6 +180,15 @@ const styles = StyleSheet.create({
     width: '30%',
     borderRadius: 10
   },
+  captureButton: {
+    height: 70,
+    width: 70,
+    marginBottom: 10,
+    borderRadius: 100,
+    border: 'black',
+    borderWidth: 2,
+    backgroundColor: 'white'
+  },  
   text: {
     color: 'white',
     fontWeight: 'bold'
@@ -199,9 +202,20 @@ const styles = StyleSheet.create({
     width: '50%',
     borderRadius: 10
   },
-  resultsText: {
-    fontSize: 16,
-    fontWeight: 'bold'
-
+  thinkingText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'blue'
   }
 });
+
+
+{/* <View style={{alignItems: 'center'}}>
+<Results/>
+{previewVisible && capturedImage ? 
+<TouchableOpacity style={styles.resultsButton} onPress={resetCamera}>
+        <Text> Try Again </Text>
+        <Text style={styles.resultsText}> {isHotDog} </Text>
+</TouchableOpacity> : <></>
+}
+</View> */}
