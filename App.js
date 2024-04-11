@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions,ImageBackground, Image } from 'react-native';
 import axios from 'axios'
 import Results from './Results';
+import ImagePreview from './ImagePreview'
 
 
 export default function App() {
@@ -137,15 +138,7 @@ export default function App() {
     <View>
       <View style={{marginTop: 50}}>
         {previewVisible && capturedImage ? 
-        <View>
-          <ImageBackground 
-          style={{ 
-            height: height,
-            width: '100%',
-            // borderColor: 'green',
-            // borderWidth: 2
-            }} source={{uri: capturedImage.uri}}/>
-        </View>
+          <ImagePreview width={width} capturedImage={capturedImage}/>
         :
         <Camera 
          // ratio="4:3"

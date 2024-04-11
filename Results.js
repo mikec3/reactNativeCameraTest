@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions,ImageBackground, Image } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const Results = props => {
 
+    // store the results
     const [isHotDog, setIsHotDog] = useState();
 
-        // use 'width' for the window's width.
-        const {width} = useWindowDimensions();
-
+    // create the results jsx fragment
     useEffect(()=> {
         if (props.isHotDog) {
             setIsHotDog(<View style={styles.hotDog}><Text style={styles.dogText}> Hotdog!</Text></View>)
