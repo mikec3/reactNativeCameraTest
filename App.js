@@ -40,8 +40,6 @@ export default function App() {
   // if permission hasn't been granted, ask for it. Should really be checking for permission.granted at some point
   if (!permission) {
     requestPermission(Camera.requestCameraPermissionsAsync());
-
-    console.log('permission after requesting' + permission);
   }
 
   // toggle the camera (front or back)
@@ -51,7 +49,6 @@ export default function App() {
 
   // take the picture and send it to api
   async function takePicture() {
-    console.log('take picture');
 
     // tell the camera to store the base64 for images it takes
     const options = {base64: true}
@@ -65,14 +62,10 @@ export default function App() {
 
    // send the base64 image to the server for analysis
     sendPicToAPI(photo);
-
-    // print the local file system uri of the photo
-    console.log(photo.uri);
   }
 
   // sends the taken photo to our api for analysis, will return a true/false for isHotDog
   async function sendPicToAPI(photo) {
-    console.log('image?');
 
     // isThinking is true, so that results window can show thinking while awaiting api response
     setIsThinking(true);
@@ -101,12 +94,8 @@ export default function App() {
 
       axios(config)
       .then((response) => {
-        console.log(JSON.stringify(response.data))
-        if (response.data != 'error') {
+        if (response.status == '200') {
           // do something with the response
-          console.log(response.data)
-          console.log(response.status);
-          console.log('is hotdog?: ' + response.data.hotdog);
           if (response.data.hotdog) {
             // hot dog found!
             setIsHotDog(true);
