@@ -1,18 +1,13 @@
-import { Camera, CameraType } from 'expo-camera';
+
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions,ImageBackground, Image } from 'react-native';
+import { Button, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions, Image } from 'react-native';
 import axios from 'axios'
 import Results from './Results';
 import ImagePreview from './ImagePreview'
+import CameraView from './CameraView'
 
 
 export default function App() {
-
-  // variable for camera front/back
-  const [type, setType] = useState(CameraType.back);
-
-  // stores if we have permission from device to use the camera
-  const [permission, requestPermission] = Camera.useCameraPermissions();
 
   // results from api will update if we found a hot dog or not
   const [isHotDog, setIsHotDog] = useState(false);
@@ -30,31 +25,8 @@ export default function App() {
   const {width} = useWindowDimensions();
   const height = Math.round((width*4)/3);
 
-  // instantiate the camera
-  let camera: Camera;
-
-
-  // do we have permission to use the camera?
-  console.log('permission at startup: ' + permission);
-
-  // if permission hasn't been granted, ask for it. Should really be checking for permission.granted at some point
-  if (!permission) {
-    requestPermission(Camera.requestCameraPermissionsAsync());
-  }
-
-  // toggle the camera (front or back)
-  function toggleCameraType() {
-    setType(current => (current === CameraType.back ? CameraType.front : CameraType.back));
-  }
-
   // take the picture and send it to api
-  async function takePicture() {
-
-    // tell the camera to store the base64 for images it takes
-    const options = {base64: true}
-
-    // take the photo
-    const photo = await camera.takePictureAsync(options);
+  async function processPicture(photo) {
 
     // store the photo and tell previewer that we can view the preview
     setCapturedImage(photo);
@@ -77,7 +49,7 @@ export default function App() {
 
       // contrsuct api call, pass base64 image in
       let base64Img = source;
-      let apiUrl = 'http://192.168.4.25:3001/api/testAPICall';
+      let apiUrl = 'http://192.168.4.25:3001/api/getPhotoResults';
       let data = JSON.stringify({
         file: base64Img
       });
@@ -129,30 +101,10 @@ export default function App() {
         {previewVisible && capturedImage ? 
           <ImagePreview width={width} capturedImage={capturedImage}/>
         :
-        <Camera 
-         // ratio="4:3"
-          style={{
-            height: height,
-            width: "100%",
-            justifyContent: 'flex-end'
-          }} 
-          type={type}
-          ref={(r)=> {
-            camera = r
-          }}
-          >
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={toggleCameraType}>
-              <Text style={styles.text}>Flip Camera</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-                <Text> </Text>
-            </TouchableOpacity>
-          </View>
-        </Camera>
+        <CameraView height={height} processPicture={processPicture}/>
         }
       </View>
-      <View style={{alignItems: 'center', justifyContent: 'center', height: '30%'}}>
+      <View style={styles.resultsView}>
         {isThinking ?
           <View> 
             <Text style={styles.thinkingText}> Thinking... </Text>
@@ -168,29 +120,10 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  buttonContainer: {
-    alignItems: 'center'
-  },
-  button: {
+  resultsView: {
     alignItems: 'center',
-    marginBottom: 25,
-    borderColor: 'white',
-    borderWidth: 1,
-    width: '30%',
-    borderRadius: 10
-  },
-  captureButton: {
-    height: 70,
-    width: 70,
-    marginBottom: 10,
-    borderRadius: 100,
-    border: 'black',
-    borderWidth: 2,
-    backgroundColor: 'white'
-  },  
-  text: {
-    color: 'white',
-    fontWeight: 'bold'
+    justifyContent: 'center',
+    height: '30%'
   },
   thinkingText: {
     fontSize: 20,

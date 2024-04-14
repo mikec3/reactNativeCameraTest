@@ -17,9 +17,7 @@ const server = http.createServer(app);
 app.use(bodyParser.json({limit: '200mb'}))
 
 // api for testing response
-app.post("/api/testAPICall", async function(req, res) {
-	console.log('api/testAPICall');
-   // console.log(req.body.file);
+app.post("/api/getPhotoResults", async function(req, res) {
 
        // store the result labels as an array to then get passed into a isHotDog() function
        let resultLabels = [];
@@ -42,11 +40,8 @@ app.post("/api/testAPICall", async function(req, res) {
       console.log('Labels:');
       // looop through the result labels and add each description to an array
       labels.forEach(label => {
-        // console.log(label);
-        // console.log(label.description);
         resultLabels.push(label.description);
     });
-    
       console.log(resultLabels);
       
       let isHotDog = checkForHotDog(resultLabels);  // Look for hot dog in labels
@@ -90,11 +85,6 @@ function checkForHotDog(labels){
 
 	return isHotDog;
 }
-
-app.get('/api/testSimple', async function(req, res) {
-  console.log('simple API Test Called');
-  res.json({'message': 'simple API called'});
-})
 
 app.get('*', (req, res)=> {
  // console.log(req);
